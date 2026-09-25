@@ -75,6 +75,13 @@ describe('dataErrorMessage', () => {
       DATA_MESSAGES.network,
     )
     expect(dataErrorMessage(new TypeError('Failed to fetch'))).toBe(DATA_MESSAGES.network)
+    expect(dataErrorMessage({ message: 'TypeError: fetch failed', code: '' })).toBe(
+      DATA_MESSAGES.network,
+    )
+    expect(dataErrorMessage({ message: 'NetworkError when attempting to fetch resource.' })).toBe(
+      DATA_MESSAGES.network,
+    )
+    expect(dataErrorMessage({ message: 'Load failed' })).toBe(DATA_MESSAGES.network)
   })
 
   it('ไม่รู้จัก = ข้อความทั่วไป', () => {

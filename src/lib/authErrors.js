@@ -19,7 +19,8 @@ export const DATA_MESSAGES = {
 const isNetworkError = (error) =>
   error.name === 'AuthRetryableFetchError' ||
   error.status === 0 ||
-  /failed to fetch|network|load failed/i.test(error.message ?? '')
+  // Chrome: Failed to fetch, Firefox: NetworkError, Safari: Load failed, Node/บางเบราว์เซอร์: fetch failed
+  /failed to fetch|fetch failed|network|load failed/i.test(error.message ?? '')
 
 // ไม่แยกข้อความระหว่าง email ผิดกับรหัสผ่านผิด
 export function authErrorMessage(error) {
