@@ -11,6 +11,7 @@ import {
 
 // หนึ่งรายการ Loan พร้อมปุ่ม: คืนแล้ว (เฉพาะที่ยังไม่คืน), ยกเลิกการคืน (เฉพาะที่คืนแล้ว), แก้ไข
 // ไม่มีปุ่มลบ
+// onMarkReturned / onUnmarkReturned คืนข้อความผิดพลาดภาษาไทย หรือ null เมื่อสำเร็จ
 export default function LoanItem({ loan, today, onMarkReturned, onUnmarkReturned, onEdit }) {
   const status = getLoanStatus(loan, today)
   const daysOverdue = getDaysOverdue(loan, today)
@@ -18,12 +19,21 @@ export default function LoanItem({ loan, today, onMarkReturned, onUnmarkReturned
 
   const [returnDate, setReturnDate] = useState(today)
   const [errors, setErrors] = useState([])
+  const [busy, setBusy] = useState(false)
+
+  // ปิดปุ่มระหว่างรอเซิร์ฟเวอร์ กันกดซ้ำ
+  const run = async (action) => {
+    setBusy(true)
+    const saveError = await action()
+    setBusy(false)
+    setErrors(saveError ? [saveError] : [])
+  }
 
   const handleMarkReturned = () => {
     const found = validateLoan(markReturned(loan, today, returnDate))
     setErrors(found)
     if (found.length > 0) return
-    onMarkReturned(loan, returnDate)
+    run(() => onMarkReturned(loan, returnDate))
   }
 
   return (
@@ -48,7 +58,12 @@ export default function LoanItem({ loan, today, onMarkReturned, onUnmarkReturned
               onChange={(e) => setReturnDate(e.target.value)}
             />
           </label>
-          <button type="button" className="mark-returned" onClick={handleMarkReturned}>
+          <button
+            type="button"
+            className="mark-returned"
+            onClick={handleMarkReturned}
+            disabled={busy}
+          >
             คืนแล้ว
           </button>
         </div>
@@ -63,11 +78,11 @@ export default function LoanItem({ loan, today, onMarkReturned, onUnmarkReturned
 
       <div className="loan-actions">
         {isReturned && (
-          <button type="button" onClick={() => onUnmarkReturned(loan)}>
+          <button type="button" onClick={() => run(() => onUnmarkReturned(loan))} disabled={busy}>
             ยกเลิกการคืน
           </button>
         )}
-        <button type="button" onClick={() => onEdit(loan)}>
+        <button type="button" onClick={() => onEdit(loan)} disabled={busy}>
           แก้ไข
         </button>
       </div>
